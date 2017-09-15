@@ -4,6 +4,60 @@ import time
 from pygame import *
 
 
+class Cell:
+    def set_state(self, state):
+        self.state = state
+
+
+    def is_alive(self):
+        return self.state
+
+
+class CellList:
+    def __init__(self, nrow = 10, ncol = 10, filename = None):
+        self.nrow = nrow
+        self.ncol = ncol
+        self.filename = filename
+        
+        grid = [[Cell(0) for i in range(ncol)] for j in range(nrow)]
+        if filename != None:
+            fin = open(filename)
+            for i in range(nrow):
+                grid[i] = [Cell(bool(int(elem))) for elem in fin.readline().split()]
+
+
+    def draw(self, display, cell_size):
+        color_green = Color('green')
+        color_white = Color('white')
+        for i in range(self.nrow):
+            for j in range(self.ncol):
+                draw.rect(display, 
+                          color_green if self.grid[i][j].is_alive() 
+                          else color_white,
+                          (cell_size * i + 1, cell_size * j + 1,
+                          cell_size, cell_size))
+
+
+    def update(self):
+        pass
+
+
+    def __iter__(self):
+        pass
+
+
+    def __next__(self):
+        pass
+
+
+    def __str__(self):
+        pass
+
+
+    def __repr__(self):
+        pass    
+
+
 class GameOfLife:
     def __init__(self, width = 640, height = 480, cell_size = 10, speed = 200):
         self.width = width
