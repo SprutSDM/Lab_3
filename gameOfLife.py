@@ -43,25 +43,28 @@ class CellList:
                 grid[i] = [Cell(bool(int(line[j])), i, j) for j in range(len(line))]
 
     def get_neighbours(self, cell):
-            count = 0
-            for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
-                         (1, 0), (1, 1)]:
-                if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % self.ncel].is_alive):
-                    count += 1
-            return count
+        count = 0
+        for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
+                     (1, 0), (1, 1)]:
+            if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % self.ncel].is_alive()):
+                count += 1
+        return count
 
     def update(self):
-        ans_grid = [[Cell(0, i, j) for i in range(self.ncel)] 
-                    for j in range(self.nrow)]
+        ans_grid = list()
+        for i in range(self.nrow):
+            ans_grid.append(list())
+            for j in range(self.ncel):
+                ans_grid[-1].append(Cell(0, i, j))
         for i in range(self.nrow):
             for j in range(self.ncel):
                 neighbours = self.get_neighbours((i, j))
-                if 2 <= neighbours <= 3 and self.grid[(i, j)].is_alive():
-                    ans_grid[i][j] = Cell(True, i, j)
-                elif neighbours == 3 and not self.grid[(i, j)].is_alive():
-                    ans_grid[i][j] = Cell(True, i, j)
+                if 2 <= neighbours <= 3 and self.grid[i][j].is_alive():
+                    ans_grid[i][j].set_state(True)
+                elif neighbours == 3 and not self.grid[i][j].is_alive():
+                    ans_grid[i][j].set_state(True)
                 else:
-                    ans_grid[i][j] = Cell(False, i, j)
+                    ans_grid[i][j].set_state(False)
         self.grid = ans_grid
 
     def __iter__(self):
@@ -109,9 +112,9 @@ class GameOfLife:
 
     def cell_list(self, randomize=False):
         self.grid = CellList(self.cell_width, self.cell_height, None)
-        for elem in self.grid:
-            elem = Cell(random.randint(0, 1) * (randomize == True), elem.i, elem.j)
-            #print(elem.state)
+        for i in range(self.cell_width):
+            for j in range(self.cell_height):
+                self.grid[(i, j)].set_state(random.randint(0, 1))
         print(self.grid)
         '''self.grid[0][0] = 1
         self.grid[1][0] = 1
@@ -133,11 +136,12 @@ class GameOfLife:
     def draw_cell_list(self):
         color_green = Color('green')
         color_white = Color('white')
-        for elem in self.grid:
-            draw.rect(self.screen, 
-                      color_green if elem.is_alive else color_white,
-                          (self.cell_size * elem.i + 1, self.cell_size * elem.j + 1,
-                          self.cell_size, self.cell_size))
+        for i in range(self.cell_width):
+            for j in range(self.cell_height):
+                draw.rect(self.screen, 
+                          color_green if self.grid[(i, j)].is_alive() else color_white,
+                          (self.cell_size * self.grid[(i, j)].i + 1, self.cell_size * self.grid[(i, j)].j + 1,
+                           self.cell_size, self.cell_size))
 
     def run(self):
         pygame.init()
@@ -159,10 +163,10 @@ class GameOfLife:
 
 
 if __name__ == '__main__':
-    #game = GameOfLife(1200, 700, 5)
-    #game.run()
-    cl = CellList(nrow=10, ncel=5)
-    iter(cl)
-    for elem in cl:
-        elem.set_state(random.randint(0, 1))
-    print(cl)
+    game = GameOfLife(1200, 700, 5)
+    game.run()
+    #cl = CellList(nrow=10, ncel=5)
+    #for i in range(10):
+    #    for j in range(5):
+    #        cl[(i, j)].set_state(random.randint(0, 1))
+    #print(cl)
