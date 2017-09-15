@@ -5,7 +5,7 @@ from pygame import *
 
 
 class GameOfLife:
-    def __init__(self, width = 640, height = 480, cell_size = 10, speed = 20):
+    def __init__(self, width = 640, height = 480, cell_size = 10, speed = 200):
         self.width = width
         self.height = height
         self.cell_size = cell_size
@@ -39,22 +39,21 @@ class GameOfLife:
 
 
     def get_neighbours(self, cell):
-        neighbours = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if i == j == 0:
-                    continue
-                neighbours.append(self.grid[(cell[0] + i) % self.cell_width]
-                                  [(cell[1] + j) % self.cell_height])
-        return neighbours
-
-
+        count = 0
+        for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
+                     (1, 0), (1, 1)]:
+            if (self.grid[(cell[0] + i) % self.cell_width]
+                [(cell[1] + j) % self.cell_height] == True):
+                count += 1
+        return count
+    
+    
     def update_cell_list(self):
         ans_grid = list()
         for i in range(self.cell_width):
             ans_grid.append(list())
             for j in range(self.cell_height):
-                neighbours = self.get_neighbours((i, j)).count(True)
+                neighbours = self.get_neighbours((i, j))
                 if 2 <= neighbours <= 3 and self.grid[i][j] == True:
                     ans_grid[-1].append(True)
                 elif neighbours == 3 and self.grid[i][j] == False:
@@ -65,10 +64,12 @@ class GameOfLife:
 
 
     def draw_cell_list(self):
+        color_green = Color('green')
+        color_white = Color('white')
         for i in range(self.cell_width):
             for j in range(self.cell_height):
                 draw.rect(self.screen, 
-                          Color('green') if self.grid[i][j] else Color('white'),
+                          color_green if self.grid[i][j] else color_white,
                           (self.cell_size * i + 1, self.cell_size * j + 1,
                           self.cell_size, self.cell_size))
 
