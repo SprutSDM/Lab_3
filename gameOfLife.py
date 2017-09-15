@@ -1,12 +1,13 @@
 import pygame
 import random
-import time
 from pygame import *
 
 
 class Cell:
-    def __init__(self, state):
+    def __init__(self, state, i, j):
         self.state = state
+        self.i = i
+        self.j = j
 
     def set_state(self, state):
         self.state = state
@@ -15,10 +16,10 @@ class Cell:
         return self.state
     
     def __repr__(self):
-        return str(self.state)
+        return '1' if self.state else '0'
     
     def __str__(self):
-        return str(self.state)
+        return '1' if self.state else '0'
 
 
 class CellList:
@@ -29,31 +30,45 @@ class CellList:
         self.irow = 0
         self.icel = -1
 
-        self.grid = [[Cell(0) for i in range(ncel)] for j in range(nrow)]
+        self.grid = list()
+        for i in range(self.nrow):
+            self.grid.append(list())
+            for j in range(self.ncel):
+                self.grid[-1].append(Cell(0, i, j))
+
         if filename is not None:
             fin = open(filename)
             for i in range(nrow):
-                grid[i] = [Cell(bool(int(elem))) for elem in fin.readline().split()]
+                line = fin.readline().split()
+                grid[i] = [Cell(bool(int(line[j])), i, j) for j in range(len(line))]
+
+    def get_neighbours(self, cell):
+            count = 0
+            for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
+                         (1, 0), (1, 1)]:
+                if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % self.ncel].is_alive):
+                    count += 1
+            return count
 
     def update(self):
-        ans_grid = list()
+        ans_grid = [[Cell(0, i, j) for i in range(self.ncel)] 
+                    for j in range(self.nrow)]
         for i in range(self.nrow):
-            ans_grid.append(list())
             for j in range(self.ncel):
                 neighbours = self.get_neighbours((i, j))
-                if 2 <= neighbours <= 3 and self.grid[i][j] == True:
-                    ans_grid[-1].append(True)
-                elif neighbours == 3 and self.grid[i][j] == False:
-                    ans_grid[-1].append(True)
+                if 2 <= neighbours <= 3 and self.grid[(i, j)].is_alive():
+                    ans_grid[i][j] = Cell(True, i, j)
+                elif neighbours == 3 and not self.grid[(i, j)].is_alive():
+                    ans_grid[i][j] = Cell(True, i, j)
                 else:
-                    ans_grid[-1].append(False)
+                    ans_grid[i][j] = Cell(False, i, j)
         self.grid = ans_grid
 
     def __iter__(self):
         return self
 
     def __getitem__(self, key):
-        return grid[key[0]][grid[key[1]]]
+        return self.grid[key[0]][key[1]]
 
     def __next__(self):
         self.icel += 1
@@ -65,22 +80,22 @@ class CellList:
         return self.grid[0][0]
     
     def __repr__(self):
-        ans = '[[' + ', '.join([str(elem) for elem in self.grid[0]]) + '],\n'
+        ans = '[[' + ', '.join([str(elem.state) for elem in self.grid[0]]) + '],\n'
         for i in range(1, self.nrow - 1):
-            ans += ' [' + ', '.join([str(elem) for elem in self.grid[i]]) + '],\n'
-        ans += ' [' + ', '.join([str(elem) for elem in self.grid[-1]]) + ']]'
+            ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[i]]) + '],\n'
+        ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[-1]]) + ']]'
         return ans
         
     def __str__(self):
-        ans = '[[' + ', '.join([str(elem) for elem in self.grid[0]]) + '],\n'
+        ans = '[[' + ', '.join([str(elem.state) for elem in self.grid[0]]) + '],\n'
         for i in range(self.nrow - 1):
-            ans += ' [' + ', '.join([str(elem) for elem in self.grid[i]]) + '],\n'
-        ans += ' [' + ', '.join([str(elem) for elem in self.grid[-1]]) + ']]'
+            ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[i]]) + '],\n'
+        ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[-1]]) + ']]'
         return ans
 
 
 class GameOfLife:
-    def __init__(self, width = 640, height = 480, cell_size = 10, speed = 200):
+    def __init__(self, width = 640, height = 480, cell_size = 10, speed = 1):
         self.width = width
         self.height = height
         self.cell_size = cell_size
@@ -93,9 +108,11 @@ class GameOfLife:
         self.cell_height = (height // cell_size)
 
     def cell_list(self, randomize=False):
-        self.grid = [[random.randint(0, 1) * (randomize == True)
-                      for j in range(self.cell_height)]
-                     for i in range(self.cell_width)]
+        self.grid = CellList(self.cell_width, self.cell_height, None)
+        for elem in self.grid:
+            elem = Cell(random.randint(0, 1) * (randomize == True), elem.i, elem.j)
+            #print(elem.state)
+        print(self.grid)
         '''self.grid[0][0] = 1
         self.grid[1][0] = 1
         self.grid[2][0] = 1
@@ -109,38 +126,17 @@ class GameOfLife:
         for y in range(0, self.height, self.cell_size):
             pygame.draw.line(self.screen, pygame.Color('black'), 
                 (0, y), (self.width, y))
-
-    def get_neighbours(self, cell):
-        count = 0
-        for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
-                     (1, 0), (1, 1)]:
-            if (self.grid[(cell[0] + i) % self.cell_width]
-                [(cell[1] + j) % self.cell_height] == True):
-                count += 1
-        return count
     
     def update_cell_list(self):
-        ans_grid = list()
-        for i in range(self.cell_width):
-            ans_grid.append(list())
-            for j in range(self.cell_height):
-                neighbours = self.get_neighbours((i, j))
-                if 2 <= neighbours <= 3 and self.grid[i][j] == True:
-                    ans_grid[-1].append(True)
-                elif neighbours == 3 and self.grid[i][j] == False:
-                    ans_grid[-1].append(True)
-                else:
-                    ans_grid[-1].append(False)
-        self.grid = ans_grid
+        self.grid.update()
 
     def draw_cell_list(self):
         color_green = Color('green')
         color_white = Color('white')
-        for i in range(self.cell_width):
-            for j in range(self.cell_height):
-                draw.rect(self.screen, 
-                          color_green if self.grid[i][j] else color_white,
-                          (self.cell_size * i + 1, self.cell_size * j + 1,
+        for elem in self.grid:
+            draw.rect(self.screen, 
+                      color_green if elem.is_alive else color_white,
+                          (self.cell_size * elem.i + 1, self.cell_size * elem.j + 1,
                           self.cell_size, self.cell_size))
 
     def run(self):
@@ -165,7 +161,8 @@ class GameOfLife:
 if __name__ == '__main__':
     #game = GameOfLife(1200, 700, 5)
     #game.run()
-    cl = CellList(nrow=10, ncel=10)
+    cl = CellList(nrow=10, ncel=5)
+    iter(cl)
     for elem in cl:
-        elem = random.randint(0,1)
+        elem.set_state(random.randint(0, 1))
     print(cl)
