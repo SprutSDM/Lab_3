@@ -20,7 +20,7 @@ class Cell:
 
 
 class CellList:
-    def __init__(self, nrow = 10, ncel = 10, filename = None):
+    def __init__(self, nrow=10, ncel=10, filename=None):
         self.nrow = nrow
         self.ncel = ncel
         self.filename = filename
@@ -37,15 +37,16 @@ class CellList:
             fin = open(filename)
             for i in range(nrow):
                 line = fin.readline().split()
-                grid[i] = [Cell(bool(int(line[j])), i, j) for j in range(len(line))]
+                grid[i] = [Cell(bool(int(line[j])), i, j)
+                           for j in range(len(line))]
             fin.close()
 
     def get_neighbours(self, cell):
         count = 0
-        moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), 
+        moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
                  (0, 1), (1, -1), (1, 0), (1, 1)]
         for i, j in moves:
-            if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % 
+            if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) %
                                                      self.ncel].is_alive()):
                 count += 1
         return count
@@ -83,23 +84,26 @@ class CellList:
         return self.grid[0][0]
 
     def __str__(self):
-        ans = '[[' + ', '.join([str(elem.state) for elem in self.grid[0]]) + '],\n'
+        ans = '[[' + ', '.join([str(elem.state)
+                                for elem in self.grid[0]]) + '],\n'
         for i in range(self.nrow - 1):
-            ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[i]]) + '],\n'
-        ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[-1]]) + ']]'
+            ans += ' [' + ', '.join([str(elem.state)
+                                     for elem in self.grid[i]]) + '],\n'
+        ans += ' [' + ', '.join([str(elem.state)
+                                 for elem in self.grid[-1]]) + ']]'
         return ans
 
 
 class GameOfLife:
-    def __init__(self, width = 640, height = 480, cell_size = 10, speed = 1):
+    def __init__(self, width=640, height=480, cell_size=10, speed=1):
         self.width = width
         self.height = height
         self.cell_size = cell_size
         self.speed = speed
-        
+
         self.screen_size = (width, height)
         self.screen = pygame.display.set_mode(self.screen_size)
-        
+
         self.cell_width = (width // cell_size)
         self.cell_height = (height // cell_size)
 
@@ -112,12 +116,12 @@ class GameOfLife:
 
     def draw_grid(self):
         for x in range(0, self.width, self.cell_size):
-            pygame.draw.line(self.screen, pygame.Color('black'), 
-                (x, 0), (x, self.height))
+            pygame.draw.line(self.screen, pygame.Color('black'),
+                             (x, 0), (x, self.height))
         for y in range(0, self.height, self.cell_size):
-            pygame.draw.line(self.screen, pygame.Color('black'), 
-                (0, y), (self.width, y))
-    
+            pygame.draw.line(self.screen, pygame.Color('black'),
+                             (0, y), (self.width, y))
+
     def update_cell_list(self):
         self.grid.update()
 
@@ -126,9 +130,10 @@ class GameOfLife:
         color_white = Color('white')
         for i in range(self.cell_width):
             for j in range(self.cell_height):
-                draw.rect(self.screen, 
-                          color_green if self.grid[(i, j)].is_alive() else color_white,
-                          (self.cell_size * self.grid[(i, j)].i + 1, self.cell_size * self.grid[(i, j)].j + 1,
+                draw.rect(self.screen, color_green
+                          if self.grid[(i, j)].is_alive() else color_white,
+                          (self.cell_size * self.grid[(i, j)].i + 1,
+                           self.cell_size * self.grid[(i, j)].j + 1,
                            self.cell_size, self.cell_size))
 
     def run(self):
