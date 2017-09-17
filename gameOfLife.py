@@ -14,10 +14,7 @@ class Cell:
 
     def is_alive(self):
         return self.state
-    
-    def __repr__(self):
-        return '1' if self.state else '0'
-    
+
     def __str__(self):
         return '1' if self.state else '0'
 
@@ -41,12 +38,15 @@ class CellList:
             for i in range(nrow):
                 line = fin.readline().split()
                 grid[i] = [Cell(bool(int(line[j])), i, j) for j in range(len(line))]
+            fin.close()
 
     def get_neighbours(self, cell):
         count = 0
-        for (i, j) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), 
-                     (1, 0), (1, 1)]:
-            if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % self.ncel].is_alive()):
+        moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), 
+                 (0, 1), (1, -1), (1, 0), (1, 1)]
+        for i, j in moves:
+            if (self.grid[(cell[0] + i) % self.nrow][(cell[1] + j) % 
+                                                     self.ncel].is_alive()):
                 count += 1
         return count
 
@@ -81,14 +81,7 @@ class CellList:
         if self.irow == self.nrow:
             raise StopIteration
         return self.grid[0][0]
-    
-    def __repr__(self):
-        ans = '[[' + ', '.join([str(elem.state) for elem in self.grid[0]]) + '],\n'
-        for i in range(1, self.nrow - 1):
-            ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[i]]) + '],\n'
-        ans += ' [' + ', '.join([str(elem.state) for elem in self.grid[-1]]) + ']]'
-        return ans
-        
+
     def __str__(self):
         ans = '[[' + ', '.join([str(elem.state) for elem in self.grid[0]]) + '],\n'
         for i in range(self.nrow - 1):
@@ -116,11 +109,6 @@ class GameOfLife:
             for j in range(self.cell_height):
                 self.grid[(i, j)].set_state(random.randint(0, 1))
         print(self.grid)
-        '''self.grid[0][0] = 1
-        self.grid[1][0] = 1
-        self.grid[2][0] = 1
-        self.grid[2][1] = 1
-        self.grid[1][2] = 1''' # человечек
 
     def draw_grid(self):
         for x in range(0, self.width, self.cell_size):
@@ -165,8 +153,3 @@ class GameOfLife:
 if __name__ == '__main__':
     game = GameOfLife(1200, 700, 5)
     game.run()
-    #cl = CellList(nrow=10, ncel=5)
-    #for i in range(10):
-    #    for j in range(5):
-    #        cl[(i, j)].set_state(random.randint(0, 1))
-    #print(cl)
